@@ -46,39 +46,40 @@ entry:
 readloop:
 		MOV		SI,0			; 失敗回数を数えるレジスタ
 retry:
-		MOV		AH,0x02			; AH=0x02 : ディスクの読み込み
+		MOV		AH,0x02			; AH=0x02 : ディスク読み込み
 		MOV		AL,1			; 1セクタ
 		MOV		BX,0
 		MOV		DL,0x00			; Aドライブ
 		INT		0x13			; ディスクBIOS呼び出し
-		JNC		next			; エラーが起きなければnextへ
+		JNC		next			; エラーがおきなければnextへ
 		ADD		SI,1			; SIに1を足す
 		CMP		SI,5			; SIと5を比較
-		JAE		error			; SI >= 5だったらerrorへ
+		JAE		error			; SI >= 5 だったらerrorへ
 		MOV		AH,0x00
 		MOV		DL,0x00			; Aドライブ
-		INT 	0x13			; ドライブのリセット
+		INT		0x13			; ドライブのリセット
 		JMP		retry
 next:
 		MOV		AX,ES			; アドレスを0x200進める
 		ADD		AX,0x0020
-		MOV		ES,AX			; ADD ES,0x020という命令がないのでこうしている
+		MOV		ES,AX			; ADD ES,0x020 という命令がないのでこうしている
 		ADD		CL,1			; CLに1を足す
 		CMP		CL,18			; CLと18を比較
-		JBE		readloop		; CL <= 18だったらreadloopへ
+		JBE		readloop		; CL <= 18 だったらreadloopへ
 		MOV		CL,1
 		ADD		DH,1
 		CMP		DH,2
-		JB		readloop		; DH < 2だったらreadloopへ
+		JB		readloop		; DH < 2 だったらreadloopへ
 		MOV		DH,0
 		ADD		CH,1
 		CMP		CH,CYLS
-		JB		readloop		; CH < CSLS だったらreadloopへ
+		JB		readloop		; CH < CYLS だったらreadloopへ
 
-; 読み終わったのでharibote.sysを実行だ！
+; 読み終わったけどとりあえずやることないので寝る
 
-		MOV		[0x0ff0],CH		; IPLがどこまで読んだかをメモ
-		JMP		0xc200
+fin:
+		HLT						; 何かあるまでCPUを停止させる
+		JMP		fin				; 無限ループ
 
 error:
 		MOV		SI,msg
@@ -91,9 +92,6 @@ putloop:
 		MOV		BX,15			; カラーコード
 		INT		0x10			; ビデオBIOS呼び出し
 		JMP		putloop
-fin:
-		HLT						; 何かあるまでCPUを停止させる
-		JMP		fin				; 無限ループ
 msg:
 		DB		0x0a, 0x0a		; 改行を2つ
 		DB		"load error"
