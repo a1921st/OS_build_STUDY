@@ -2,8 +2,8 @@
 ; TAB=4
 
 BOTPAK  EQU     0x00280000      ; bootpackのロード先
-DSCCAC  EQU     0x00100000      ; ディスクキャッシュの場所
-DSCCAC0 EQU     0x00008000      ;ディスクキャッシュの場所（リアルモード）
+DSKCAC  EQU     0x00100000      ; ディスクキャッシュの場所
+DSKCAC0 EQU     0x00008000      ;ディスクキャッシュの場所（リアルモード）
 
 ; BOOT_INFO関係
 CYLS    EQU     0x0ff0          ; ブートセクタが設定する
@@ -50,18 +50,18 @@ VRAM    EQU     0x0ff8          ; グラフィックバッファの開始番地
         OUT     0x64,AL
         CALL    waitkbdout
         MOV     AL,0xdf         ;enable A20
-        OUT     0x69,AL
+        OUT     0x60,AL
         CALL    waitkbdout
 
 ; プロテクトモード以降
 
-[INSERT "i486p"]                ; 486の命令まで使いたいという記述
+[INSTRSET "i486p"]                ; 486の命令まで使いたいという記述
 
         LGDT    [GDTR0]         ; 暫定GDTを設定
         MOV     EAX,CR0
         AND     EAX,0x7fffffff  ; bit31を0にする（ページング禁止のため）
         OR      EAX,0x00000001  ; bit0を1にする（プロテクトモード移行のため）
-        MOV     CR,EAX
+        MOV     CR0,EAX
         JMP     pipelineflush
 pipelineflush:
         MOV     AX,1*8          ; 読み書き可能セグメント32bit
